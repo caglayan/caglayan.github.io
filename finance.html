@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinanceBuddyAI — Nisan 2026</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f4f0; color: #1a1a1a; padding: 24px 16px; }
+  .container { max-width: 780px; margin: 0 auto; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+  .header h1 { font-size: 22px; font-weight: 500; }
+  .header .meta { font-size: 12px; color: #888; text-align: right; }
+  .logo { font-size: 13px; font-weight: 500; color: #888; letter-spacing: 0.05em; }
+
+  /* PARA DURUMU KARTI */
+  .durum-card { background: #1a1a1a; color: #fff; border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+  .durum-card .card-title { font-size: 11px; font-weight: 400; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 20px; }
+  .durum-main-value { font-size: 48px; font-weight: 500; color: #4ade80; line-height: 1; margin-bottom: 6px; }
+  .durum-main-label { font-size: 12px; color: #b8b8c0; margin-bottom: 20px; line-height: 1.45; }
+  .durum-breakdown { margin-bottom: 20px; }
+  .durum-breakdown .row { display: flex; justify-content: space-between; font-size: 12px; padding: 5px 0; border-bottom: 1px solid #2e2e2e; }
+  .durum-breakdown .row > span:first-child { color: #d4d4d8; }
+  .durum-breakdown .row.income > span:first-child { color: #fff; }
+  .durum-breakdown .row:last-child { border-bottom: none; }
+  .durum-breakdown .row .amt { color: #f87171; }
+  .durum-breakdown .row.income .amt { color: #fff; }
+  .durum-breakdown .row.result { margin-top: 4px; }
+  .durum-breakdown .row.result span { color: #fff; font-weight: 500; }
+  .durum-breakdown .row.result .amt { color: #4ade80; }
+  .durum-divider { border: none; border-top: 1px solid #2e2e2e; margin: 16px 0; }
+  .durum-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .durum-item .d-label { font-size: 11px; color: #a8a8b0; margin-bottom: 4px; }
+  .durum-item .d-value { font-size: 17px; font-weight: 500; }
+  .durum-item .d-value.white { color: #fff; }
+  .durum-item .d-value.red { color: #f87171; }
+  .durum-item .d-value.amber { color: #fbbf24; }
+  .durum-note { font-size: 11px; color: #a3a3ab; margin-top: 12px; line-height: 1.6; }
+
+  /* ÖZET METRİKLER */
+  .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+  .metric { background: #fff; border-radius: 10px; padding: 14px; border: 0.5px solid #e5e5e5; }
+  .metric .label { font-size: 11px; color: #888; margin-bottom: 4px; }
+  .metric .value { font-size: 18px; font-weight: 500; }
+  .metric .value.green { color: #0F6E56; }
+  .metric .value.red { color: #A32D2D; }
+
+  /* BÖLÜMLER */
+  .section { background: #fff; border: 0.5px solid #e5e5e5; border-radius: 12px; padding: 16px 20px; margin-bottom: 12px; }
+  .section-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .section-title h3 { font-size: 11px; font-weight: 500; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+  .badge { border-radius: 4px; padding: 2px 8px; font-size: 11px; }
+  .badge-red { background: #FCEBEB; color: #791F1F; }
+
+  table { width: 100%; font-size: 13px; border-collapse: collapse; }
+  th { text-align: left; font-weight: 500; font-size: 11px; color: #888; padding: 4px 0 8px; border-bottom: 0.5px solid #eee; }
+  th:not(:first-child), td:not(:first-child) { text-align: right; }
+  td { padding: 6px 0; color: #1a1a1a; border-bottom: 0.5px solid #f0f0f0; }
+  tr:last-child td { border-bottom: none; }
+  .total-row td { font-weight: 500; border-top: 0.5px solid #ddd; padding-top: 8px; border-bottom: none; }
+  .sub-row td { font-size: 11px; color: #888; padding: 2px 0 2px 14px; border-bottom: none; }
+  .sub-row td:not(:first-child) { text-align: right; }
+
+  .diff-pos { color: #0F6E56; }
+  .diff-neg { color: #A32D2D; }
+  .check { color: #0F6E56; }
+  .pending { color: #BA7517; }
+  .note { font-size: 11px; color: #888; }
+  .muted { font-size: 11px; color: #888; margin-top: 10px; line-height: 1.6; }
+
+  @media (max-width: 500px) {
+    .summary-grid, .durum-grid { grid-template-columns: 1fr 1fr; }
+    .durum-main-value { font-size: 36px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div>
+      <div class="logo">FinanceBuddyAI</div>
+      <h1>Nisan 2026 — Bütçe Takibi</h1>
+    </div>
+    <div class="meta">
+      Son güncelleme<br>5 Nisan 2026, 12:10
+    </div>
+  </div>
+
+  <!-- ŞU AN PARA DURUMU -->
+  <div class="durum-card">
+    <div class="card-title">Şu an para durumu</div>
+    <div class="durum-main-value">3.681,39 €</div>
+    <div class="durum-main-label">Şu an hesapta olan tutar</div>
+
+    <div class="durum-breakdown">
+      <div class="row income"><span>Hesabımda olan</span><span class="amt">3.681,39 €</span></div>
+      <div class="row"><span>Kalan sabit giderler</span><span class="amt">-2.267,23 €</span></div>
+      <div class="row"><span>Kalan planlanan giderler</span><span class="amt">-693,42 €</span></div>
+      <div class="row"><span>Bekleyen Amazon borcu</span><span class="amt">-106,00 €</span></div>
+      <div class="row"><span>Diğer giderler (gerçekleşen)</span><span class="amt">-199,44 €</span></div>
+      <div class="row income"><span>Beklenen gelir (Kindergeld)</span><span class="amt">+259,00 €</span></div>
+      <div class="row result"><span>Tahmini serbest para</span><span class="amt">674,30 €</span></div>
+    </div>
+
+    <hr class="durum-divider">
+
+    <div class="durum-grid">
+      <div class="durum-item">
+        <div class="d-label">Hesabımda olan</div>
+        <div class="d-value white">3.681,39 €</div>
+      </div>
+      <div class="durum-item">
+        <div class="d-label">Bekleyen borç</div>
+        <div class="d-value red">-106,00 €</div>
+      </div>
+      <div class="durum-item">
+        <div class="d-label">Kindergeld (bekleniyor)</div>
+        <div class="d-value amber">+259,00 €</div>
+      </div>
+    </div>
+    <div class="durum-note">
+      * Kalan sabit giderler: 2.297,96 € - 30,73 € (ödendi) = 2.267,23 €<br>
+      * Kalan planlanan giderler: 1.020,00 € - 326,58 € = 693,42 €<br>
+      * Overdraft faiz: 5,67 € (31.03.2026)<br>
+      * Tahmini serbest para, beklenen Kindergeld (+259,00 €) dahildir; ödendiğinde bu satır kaldırılıp tutar güncellenir.
+    </div>
+  </div>
+
+  <!-- ÖZET METRİKLER -->
+  <div class="summary-grid">
+    <div class="metric">
+      <div class="label">Toplam Gelir (planlanan)</div>
+      <div class="value">4.954,14 €</div>
+    </div>
+    <div class="metric">
+      <div class="label">Toplam Gider (planlanan)</div>
+      <div class="value red">4.179,96 €</div>
+    </div>
+    <div class="metric">
+      <div class="label">Planlanan Kalan</div>
+      <div class="value green">774,18 €</div>
+    </div>
+  </div>
+
+  <!-- GELİR -->
+  <div class="section">
+    <div class="section-title"><h3>Gelir</h3></div>
+    <table>
+      <thead><tr><th>Kalem</th><th>Durum</th><th>Tutar</th></tr></thead>
+      <tbody>
+        <tr><td>Maaş</td><td class="check">✓ Geldi</td><td>4.303,77 €</td></tr>
+        <tr><td>Kindergeld</td><td class="pending">⏳ Bekleniyor</td><td>259,00 €</td></tr>
+        <tr><td>Önceki aydan devir</td><td class="check">✓ Geldi</td><td>391,37 €</td></tr>
+        <tr class="total-row"><td>Toplam</td><td></td><td>4.954,14 €</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- BORÇLAR -->
+  <div class="section">
+    <div class="section-title"><h3>Borçlar</h3> <span class="badge badge-red">dikkat</span></div>
+    <table>
+      <thead><tr><th>Kalem</th><th>Açıklama</th><th>Planlanan</th><th>Gerçekleşen</th></tr></thead>
+      <tbody>
+        <tr><td>N26</td><td class="note">Önceki aydan kalan</td><td class="diff-neg">-456,00 €</td><td class="check">-456,00 € ✓</td></tr>
+        <tr><td>Amazon</td><td class="note">Ayrı borç</td><td class="diff-neg">-106,00 €</td><td class="pending">⏳ Bekliyor</td></tr>
+        <tr class="total-row"><td>Toplam</td><td></td><td class="diff-neg">-562,00 €</td><td class="diff-neg">-456,00 €</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SABİT GİDERLER -->
+  <div class="section">
+    <div class="section-title"><h3>Sabit Giderler</h3></div>
+    <table>
+      <thead><tr><th>Kalem</th><th>Planlanan</th><th>Gerçekleşen</th><th>Fark</th></tr></thead>
+      <tbody>
+        <tr><td>Kira</td><td>1.661,00 €</td><td class="pending">⏳</td><td>—</td></tr>
+        <tr><td>Elektrik (eprimo) <span class="note">(aylık abonelik)</span></td><td>87,00 €</td><td class="pending">⏳</td><td>—</td></tr>
+        <tr><td>Telefon hattı 1 (Telefonica) <span class="note">(aylık abonelik)</span></td><td>57,00 €</td><td class="pending">⏳</td><td>—</td></tr>
+        <tr><td>Telefon hattı 2 (Telefonica) <span class="note">(aylık abonelik)</span></td><td>47,98 €</td><td class="pending">⏳</td><td>—</td></tr>
+        <tr><td>Araba kredisi</td><td>170,71 €</td><td class="pending">⏳</td><td>—</td></tr>
+        <tr><td>Araba sigortası</td><td>70,34 €</td><td class="pending">⏳</td><td>—</td></tr>
+        <tr><td>DB (Deutsche Bahn) <span class="note">(aylık abonelik)</span></td><td>59,85 €</td><td class="pending">⏳</td><td>—</td></tr>
+        <tr><td>Rundfunk / GEZ <span class="note">(aylık abonelik)</span></td><td>18,36 €</td><td class="pending">⏳</td><td>—</td></tr>
+        <tr><td>Kita</td><td>75,00 €</td><td class="pending">⏳</td><td>—</td></tr>
+        <tr><td>N26 Smart üyelik (ben) <span class="note">(aylık abonelik)</span></td><td>4,90 €</td><td class="check">4,90 € ✓</td><td>0,00 €</td></tr>
+        <tr><td>N26 Smart üyelik (eşim) <span class="note">(aylık abonelik)</span></td><td>4,90 €</td><td class="check">4,90 € ✓</td><td>0,00 €</td></tr>
+        <tr><td>Apple <span class="note">(aylık abonelik)</span></td><td>9,90 €</td><td class="pending">⏳</td><td>—</td></tr>
+        <tr><td>Netflix <span class="note">(aylık abonelik)</span></td><td>4,99 €</td><td class="check">4,99 € ✓</td><td>0,00 €</td></tr>
+        <tr><td>Amazon <span class="note">(aylık abonelik)</span></td><td>8,99 €</td><td class="check">8,99 € ✓</td><td>0,00 €</td></tr>
+        <tr><td>Tesla <span class="note">(aylık abonelik)</span></td><td>9,99 €</td><td class="pending">⏳</td><td>—</td></tr>
+        <tr><td>SCHUFA Holding <span class="note">(aylık abonelik)</span></td><td>6,95 €</td><td class="check">6,95 € ✓</td><td>0,00 €</td></tr>
+        <tr class="total-row"><td>Toplam</td><td>2.297,96 €</td><td>30,73 €</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PLANLANAN GİDERLER -->
+  <div class="section">
+    <div class="section-title"><h3>Planlanan Giderler</h3></div>
+    <table>
+      <thead><tr><th>Kalem</th><th>Planlanan</th><th>Gerçekleşen</th><th>Fark</th></tr></thead>
+      <tbody>
+        <tr><td>Market alışverişi <span class="note">(4x Lidl + 2x Türk m.)</span></td><td>760,00 €</td><td>209,10 €</td><td class="diff-pos">+550,90 €</td></tr>
+        <tr class="sub-row"><td>↳ 29.03 Lidl</td><td>—</td><td>126,95 €</td><td>—</td></tr>
+        <tr class="sub-row"><td>↳ 29.03 Ayasofya Market</td><td>—</td><td>82,15 €</td><td>—</td></tr>
+        <tr><td>DM</td><td>100,00 €</td><td>41,00 €</td><td class="diff-pos">+59,00 €</td></tr>
+        <tr class="sub-row"><td>↳ 30.03 DM</td><td>—</td><td>41,00 €</td><td>—</td></tr>
+        <tr><td>Kıyafet <span class="note">(3 kişi)</span></td><td>100,00 €</td><td>65,00 €</td><td class="diff-pos">+35,00 €</td></tr>
+        <tr class="sub-row"><td>↳ 29.03 Likya</td><td>—</td><td>65,00 €</td><td>—</td></tr>
+        <tr><td>Araba elektrik <span class="note">(3 ay ort.)</span></td><td>60,00 €</td><td>11,48 €</td><td class="diff-pos">+48,52 €</td></tr>
+        <tr class="sub-row"><td>↳ 29.03 Tesla</td><td>—</td><td>11,48 €</td><td>—</td></tr>
+        <tr class="total-row"><td>Toplam</td><td>1.020,00 €</td><td>326,58 €</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- DİĞER GİDERLER -->
+  <div class="section">
+    <div class="section-title"><h3>Diğer Giderler</h3></div>
+    <table>
+      <thead><tr><th>Tarih</th><th>Kalem</th><th>Tutar</th></tr></thead>
+      <tbody>
+        <tr><td class="note">26.03</td><td>Eczane (Rats-Apotheke)</td><td class="diff-neg">-42,28 €</td></tr>
+        <tr><td class="note">27.03</td><td>Amazon (kırtasiye)</td><td class="diff-neg">-19,55 €</td></tr>
+        <tr><td class="note">28.03</td><td>DHL (posta)</td><td class="diff-neg">-4,15 €</td></tr>
+        <tr><td class="note">29.03</td><td>Smyths Toys</td><td class="diff-neg">-13,27 €</td></tr>
+        <tr><td class="note">29.03</td><td>Esso (kahve)</td><td class="diff-neg">-2,79 €</td></tr>
+        <tr><td class="note">31.03</td><td>Ionos</td><td class="diff-neg">-1,00 €</td></tr>
+        <tr><td class="note">31.03</td><td>Tiyatro</td><td class="diff-neg">-20,00 €</td></tr>
+        <tr><td class="note">31.03</td><td>Kafe</td><td class="diff-neg">-20,00 €</td></tr>
+        <tr><td class="note">31.03</td><td>N26 Overdraft faizi</td><td class="diff-neg">-5,67 €</td></tr>
+        <tr><td class="note">01.04</td><td>Kindle <span class="note">(3/5 taksit)</span></td><td class="diff-neg">-50,00 €</td></tr>
+        <tr><td class="note">02.04</td><td>Deutsche Bank <span class="note">(Statement of Account)</span></td><td class="diff-neg">-20,73 €</td></tr>
+        <tr class="total-row"><td></td><td>Toplam</td><td class="diff-neg">-199,44 €</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ÖZET -->
+  <div class="section">
+    <div class="section-title"><h3>Özet — şu anki para durumu</h3></div>
+    <table>
+      <thead><tr><th>Kalem</th><th>Planlanan</th><th>Gerçekleşen</th></tr></thead>
+      <tbody>
+        <tr><td>Gelir</td><td>4.954,14 €</td><td>4.694,14 €</td></tr>
+        <tr><td>Borçlar</td><td class="diff-neg">-562,00 €</td><td class="diff-neg">-456,00 €</td></tr>
+        <tr><td>Sabit giderler</td><td>2.297,96 €</td><td>30,73 €</td></tr>
+        <tr><td>Planlanan giderler</td><td>1.020,00 €</td><td>326,58 €</td></tr>
+        <tr><td>Diğer giderler</td><td>—</td><td>199,44 €</td></tr>
+        <tr class="total-row"><td>Kalan</td><td class="diff-pos">774,18 €</td><td class="diff-pos">3.681,39 €*</td></tr>
+      </tbody>
+    </table>
+    <p class="muted">
+      Bu tablo, güncelleme satırındaki tarih ve saatteki bütçe özetidir; üstteki «Şu an para durumu» kartı ile aynı ana para durumunu yansıtır (hesaptaki tutar ve tahmini serbest orada).<br>
+      * Kindergeld (259,00 €) henüz gelmedi. Sabit giderlerin büyük kısmı ödenmedi.<br>
+      Güncelleme: FinanceBuddyAI · 5 Nisan 2026, 12:10
+    </p>
+  </div>
+
+</div>
+</body>
+</html>
